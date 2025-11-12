@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BP模拟器 - 六套卡组六ban1选3</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            padding: 30px;
+        }
+        
+        .config-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .custom-deck-section {
+            background: #fff8e1;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 2px solid #f39c12;
+        }
+        
+        .custom-deck-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .custom-deck-item {
+            background: white;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .custom-deck-item:hover {
+            border-color: #3498db;
+            transform: translateY(-2px);
+        }
+        
+        .custom-deck-item.selected {
+                border-color: #27ae60;
+                background: #e8f5e8;
+            }
+            
+            .custom-deck-item.opponent {
+                background-color: #fff3e0;
+                border-color: #ff9800;
+            }
+            
+            .custom-deck-item.disabled {
+                border-color: #bdc3c7;
+                background: #ecf0f1;
+                color: #7f8c8d;
+                cursor: not-allowed;
+            }
+            
+            .btn.disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+            
+            .no-decks {
+                text-align: center;
+                padding: 20px;
+                color: #999;
+                font-style: italic;
+            }
+        
+        .config-section h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .form-group textarea {
+            width: 100%;
+            height: 120px;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        }
+        
+        .bp-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .team-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+        }
+        
+        .team-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .team-a .team-header {
+            color: #e74c3c;
+        }
+        
+        .team-b .team-header {
+            color: #3498db;
+        }
+        
+        .deck-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .deck-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .deck-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .deck-card.selected {
+            border-color: #f39c12;
+            background: #fff8e1;
+        }
+        
+        .deck-card.banned {
+            border-color: #95a5a6;
+            background: #ecf0f1;
+            color: #7f8c8d;
+            text-decoration: line-through;
+        }
+        
+        .deck-card.picked {
+            border-color: #27ae60;
+            background: #e8f5e8;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .status-section {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .status-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .current-turn {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #f39c12;
+        }
+        
+        .history-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .history-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        @media (max-width: 1024px) {
+            .bp-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .deck-list {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .deck-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>BP模拟器</h1>
+            <p>卡组Ban Pick模拟 - 双方各六套卡组，支持自定义卡组池</p>
+        </div>
+        
+        <div class="main-content">
+
+            
+            <div class="config-section">
+                <h3>卡组池配置</h3>
+                <div class="form-group">
+                    <label for="deckPool">卡组池（每行一个卡组名称）</label>
+                    <textarea id="deckPool" placeholder="请输入卡组名称，每行一个，至少需要12个不同的卡组">沙奈朵
+鬼龙
+恶喷
+梦幻
+ltb铁轰
+轰鸣月
+电1
+电2
+索罗
+卡比兽
+连击熊
+宙斯火
+宙斯铝六尾
+宙斯鬼
+纯白洛
+一击洛
+雕控
+ltb黏美龙
+古剑豹
+赛富豪
+克属ltb
+宙斯君主蛇
+宙斯龙柱</textarea>
+                </div>
+                
+
+                
+                <div class="action-buttons">
+                    <button class="btn btn-success" onclick="applyCustomDecks()">应用用户卡组</button>
+                    <button class="btn btn-primary" id="generateOpponentBtn" onclick="generateOpponentDecks()">生成对手卡组</button>
+                    <button class="btn btn-warning" id="startBPBtn" onclick="startNewBP()">开始新BP</button>
+                    <button class="btn" onclick="runSimulation()">运行模拟</button>
+                    <button class="btn" onclick="resetBP()">重置BP</button>
+                </div>
+            </div>
+            
+            <div class="custom-deck-section">
+                <h3>用户卡组选择（固定6套）</h3>
+                <p>从卡组池中选择6套卡组分配给用户</p>
+                
+                <div class="custom-deck-grid" id="customDeckGrid">
+                    <!-- 自定义卡组选择项将在这里动态生成 -->
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-success" onclick="applyCustomDecks()">应用用户卡组</button>
+                    <button class="btn" onclick="clearUserDecks()">清空用户卡组</button>
+                    <span style="margin-left: 15px; font-weight: bold;">
+                        已选择: <span id="selectedCount">0</span>/6
+                    </span>
+                </div>
+            </div>
+            
+            <div class="custom-deck-section">
+                <h3>对手卡组</h3>
+                <p>对手卡组可以自定义选择或随机生成，可以与用户卡组重复</p>
+                
+                <div class="custom-deck-grid" id="customDeckGridB">
+                    <!-- 对手卡组将在这里动态生成 -->
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-success" onclick="applyCustomOpponentDecks()">应用自定义对手卡组</button>
+                    <button class="btn btn-primary" id="generateOpponentBtn" onclick="generateOpponentDecks()">随机生成对手卡组</button>
+                    <button class="btn" onclick="clearOpponentDecks()">清空对手卡组</button>
+                    <span style="margin-left: 15px; font-weight: bold;">
+                        已选择: <span id="selectedCountB">0</span>/6
+                    </span>
+                    <span style="margin-left: 15px; font-weight: bold;">
+                        状态: <span id="opponentStatus">未生成</span>
+                    </span>
+                </div>
+            </div>
+            
+            <div class="status-section">
+                <div class="status-info">
+                    <div class="current-turn" id="currentTurn">准备阶段</div>
+                    <div>剩余卡组: <span id="remainingDecks">12</span></div>
+                    <div>当前回合: <span id="turnNumber">0</span></div>
+                    <div>操作历史: <span id="actionCount">0</span></div>
+                    <div>队伍A已选: <span id="teamAPicked">0</span>/3 | 队伍B已选: <span id="teamBPicked">0</span>/3</div>
+                    <div>剩余Ban位: <span id="remainingBans">6</span> | 剩余Pick位: <span id="remainingPicks">1</span></div>
+                    <div>当前操作: <span id="currentAction">-</span></div>
+                </div>
+            </div>
+            
+            <div class="bp-section">
+                <div class="team-section team-a">
+                    <div class="team-header">
+                        <h3>队伍A</h3>
+                        <p>已选卡组: <span id="teamAPicked">0</span>/6</p>
+                    </div>
+                    <div class="deck-list" id="teamADecks">
+                        <!-- 队伍A的卡组将在这里动态生成 -->
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="banDeck('A')">Ban卡组</button>
+                        <button class="btn btn-success" onclick="pickDeck('A')">Pick卡组</button>
+                    </div>
+                </div>
+                
+                <div class="team-section team-b">
+                    <div class="team-header">
+                        <h3>队伍B</h3>
+                        <p>已选卡组: <span id="teamBPicked">0</span>/6</p>
+                    </div>
+                    <div class="deck-list" id="teamBDecks">
+                        <!-- 队伍B的卡组将在这里动态生成 -->
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="banDeck('B')">Ban卡组</button>
+                        <button class="btn btn-success" onclick="pickDeck('B')">Pick卡组</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="history-section">
+                <h4>操作历史</h4>
+                <div id="actionHistory">
+                    <!-- 操作历史将在这里显示 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let deckPool = [];
+        let userDecks = []; // 用户固定的6套卡组
+        let opponentDecks = []; // 对手随机的6套卡组
+        let bannedDecks = { A: [], B: [] }; // 双方各自禁用的卡组
+        let selectedDecks = { A: [], B: [] }; // 双方各自选择的卡组
+        let actionHistory = [];
+        let gamePhase = 'setup'; // setup, ban, pick
+        let isUserDecksSet = false;
+        
+        // 初始化
+        function initialize() {
+            loadDeckPool();
+            updateCustomDeckGrid();
+            updateCustomDeckGridB();
+            updateUI();
+        }
+        
+        // 加载卡组池
+        function loadDeckPool() {
+            const poolText = document.getElementById('deckPool').value;
+            deckPool = poolText.split('\n')
+                .map(deck => deck.trim())
+                .filter(deck => deck.length > 0);
+            
+            // 去重
+            deckPool = [...new Set(deckPool)];
+        }
+        
+        // 生成对手卡组
+        function generateOpponentDecks() {
+            if (!isUserDecksSet || userDecks.length !== 6) {
+                alert('请先设置用户卡组！');
+                return;
+            }
+            
+            loadDeckPool();
+            
+            if (deckPool.length < 12) {
+                alert('卡组池至少需要12个卡组！');
+                return;
+            }
+            
+            // 允许对手卡组与用户卡组重复
+            const availableDecks = [...deckPool];
+            
+            if (availableDecks.length < 6) {
+                alert('卡组池中剩余的卡组不足6个！');
+                return;
+            }
+            
+            // 随机选择6个卡组作为对手卡组
+            const shuffled = [...availableDecks].sort(() => Math.random() - 0.5);
+            opponentDecks = shuffled.slice(0, 6);
+            
+            // 重置BP状态
+            resetBP();
+            gamePhase = 'ban';
+            
+            updateUI();
+            updateCustomDeckGrid();
+            updateCustomDeckGridB();
+            addToHistory('随机对手卡组已生成');
+        }
+        
+        // 应用自定义卡组
+        function applyCustomDecks() {
+            const selectedDecks = getSelectedCustomDecks();
+            
+            if (selectedDecks.length !== 6) {
+                alert('请选择6套卡组！');
+                return;
+            }
+            
+            loadDeckPool();
+            
+            if (deckPool.length === 0) {
+                alert('卡组池不能为空！');
+                return;
+            }
+            
+            // 验证所选卡组是否在卡组池中
+            for (const deck of selectedDecks) {
+                if (!deckPool.includes(deck)) {
+                    alert(`卡组"${deck}"不在卡组池中！`);
+                    return;
+                }
+            }
+            
+            // 为用户分配选中的卡组
+            userDecks = [...selectedDecks];
+            isUserDecksSet = true;
+            
+            // 清空对手卡组，需要重新生成
+            opponentDecks = [];
+            
+            // 重置状态
+            resetBP();
+            
+            updateUI();
+            updateCustomDeckGrid();
+            addToHistory('用户卡组已设置');
+        }
+        
+        // 清空用户卡组
+        function clearUserDecks() {
+            userDecks = [];
+            opponentDecks = [];
+            isUserDecksSet = false;
+            
+            resetBP();
+            updateUI();
+            updateCustomDeckGrid();
+            addToHistory('用户卡组已清空');
+        }
+        
+        // 应用自定义对手卡组
+        function applyCustomOpponentDecks() {
+            const selectedDecks = getSelectedCustomDecksB();
+            
+            if (selectedDecks.length !== 6) {
+                alert('请选择6套卡组！');
+                return;
+            }
+            
+            loadDeckPool();
+            
+            if (deckPool.length === 0) {
+                alert('卡组池不能为空！');
+                return;
+            }
+            
+            // 验证所选卡组是否在卡组池中
+            for (const deck of selectedDecks) {
+                if (!deckPool.includes(deck)) {
+                    alert(`卡组"${deck}"不在卡组池中！`);
+                    return;
+                }
+            }
+            
+            // 为对手分配选中的卡组
+            opponentDecks = [...selectedDecks];
+            
+            // 重置BP状态
+            resetBP();
+            gamePhase = 'ban';
+            
+            updateUI();
+            updateCustomDeckGridB();
+            addToHistory('自定义对手卡组已设置');
+        }
+        
+        // 清空对手卡组
+        function clearOpponentDecks() {
+            opponentDecks = [];
+            
+            resetBP();
+            updateUI();
+            updateCustomDeckGridB();
+            addToHistory('对手卡组已清空');
+        }
+        
+        // 获取选中的自定义卡组
+        function getSelectedCustomDecks() {
+            const selectedItems = document.querySelectorAll('#customDeckGrid .custom-deck-item.selected');
+            return Array.from(selectedItems).map(item => item.dataset.deck);
+        }
+        
+        // 获取选中的队伍B自定义卡组
+        function getSelectedCustomDecksB() {
+            const selectedItems = document.querySelectorAll('#customDeckGridB .custom-deck-item.selected');
+            return Array.from(selectedItems).map(item => item.dataset.deck);
+        }
+        
+        // 清空自定义选择
+        function clearCustomSelection() {
+            document.querySelectorAll('#customDeckGrid .custom-deck-item.selected').forEach(item => {
+                item.classList.remove('selected');
+            });
+            updateSelectedCount();
+        }
+        
+        // 清空队伍B自定义选择
+        function clearCustomSelectionB() {
+            document.querySelectorAll('#customDeckGridB .custom-deck-item.selected').forEach(item => {
+                item.classList.remove('selected');
+            });
+            updateSelectedCountB();
+        }
+        
+        // 更新自定义卡组网格
+        function updateCustomDeckGrid() {
+            const grid = document.getElementById('customDeckGrid');
+            const selectedCount = document.getElementById('selectedCount');
+            grid.innerHTML = deckPool.map(deck => {
+                const isSelected = userDecks.includes(deck);
+                
+                let className = 'custom-deck-item';
+                if (isSelected) className += ' selected';
+                
+                return `
+                    <div class="${className}" data-deck="${deck}" 
+                         onclick="toggleCustomDeck('${deck}')">
+                        ${deck}
+                        <div style="font-size: 0.8em; margin-top: 5px; color: #666;">
+                            ${isSelected ? '已选择' : '可选'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            selectedCount.textContent = userDecks.length;
+        }
+        
+        // 更新对手卡组网格
+        function updateCustomDeckGridB() {
+            const grid = document.getElementById('customDeckGridB');
+            const opponentStatus = document.getElementById('opponentStatus');
+            const selectedCountB = document.getElementById('selectedCountB');
+            
+            if (opponentDecks.length === 0) {
+                opponentStatus.textContent = '未生成';
+                grid.innerHTML = deckPool.map(deck => {
+                    const isSelected = getSelectedCustomDecksB().includes(deck);
+                    
+                    let className = 'custom-deck-item';
+                    if (isSelected) className += ' selected';
+                    
+                    return `
+                        <div class="${className}" data-deck="${deck}" 
+                             onclick="toggleCustomDeckB('${deck}')">
+                            ${deck}
+                            <div style="font-size: 0.8em; margin-top: 5px; color: #666;">
+                                ${isSelected ? '已选择' : '可选'}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                return;
+            }
+            
+            grid.innerHTML = opponentDecks.map(deck => {
+                return `
+                    <div class="custom-deck-item opponent" data-deck="${deck}">
+                        ${deck}
+                        <div style="font-size: 0.8em; margin-top: 5px; color: #666;">
+                            对手卡组
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            opponentStatus.textContent = '已生成';
+            selectedCountB.textContent = opponentDecks.length;
+        }
+        
+        // 切换自定义卡组选择
+        function toggleCustomDeck(deck) {
+            const item = document.querySelector(`.custom-deck-item[data-deck="${deck}"]`);
+            
+            if (item.classList.contains('selected')) {
+                item.classList.remove('selected');
+            } else {
+                // 检查是否已达到6个选择限制
+                const selectedCount = getSelectedCustomDecks().length;
+                if (selectedCount >= 6) {
+                    alert('最多只能选择6套卡组！');
+                    return;
+                }
+                item.classList.add('selected');
+            }
+            
+            updateSelectedCount();
+        }
+        
+        // 切换队伍B自定义卡组选择
+        function toggleCustomDeckB(deck) {
+            const item = document.querySelector(`.custom-deck-item[data-deck="${deck}"]`);
+            
+            if (item.classList.contains('selected')) {
+                item.classList.remove('selected');
+            } else {
+                // 检查是否已达到6个选择限制
+                const selectedCount = getSelectedCustomDecksB().length;
+                if (selectedCount >= 6) {
+                    alert('最多只能选择6套卡组！');
+                    return;
+                }
+                item.classList.add('selected');
+            }
+            
+            updateSelectedCountB();
+        }
+        
+        // 更新已选择数量
+        function updateSelectedCount() {
+            const selectedCount = getSelectedCustomDecks().length;
+            document.getElementById('selectedCount').textContent = selectedCount;
+        }
+        
+        // 更新队伍B已选择数量
+        function updateSelectedCountB() {
+            const selectedCount = getSelectedCustomDecksB().length;
+            document.getElementById('selectedCountB').textContent = selectedCount;
+        }
+        
+        // 开始新BP
+        function startNewBP() {
+            if (userDecks.length !== 6 || opponentDecks.length !== 6) {
+                alert('请先设置用户卡组并生成对手卡组！');
+                return;
+            }
+            
+            // 重置BP状态
+            resetBP();
+            
+            // 设置游戏阶段为禁用阶段
+            gamePhase = 'ban';
+            
+            updateUI();
+            addToHistory('开始新BP');
+        }
+        
+        // 下次模拟
+        function runSimulation() {
+            if (!isUserDecksSet || userDecks.length !== 6) {
+                alert('请先设置用户卡组！');
+                return;
+            }
+            
+            // 重新生成对手卡组
+            generateOpponentDecks();
+            
+            // 重置BP状态
+            resetBP();
+            
+            updateUI();
+            addToHistory('下次模拟 - 重新生成对手卡组');
+        }
+        
+        // 重置BP状态
+        function resetBP() {
+            bannedDecks = { A: [], B: [] };
+            selectedDecks = { A: [], B: [] };
+            gamePhase = 'setup';
+            actionHistory = [];
+            updateTurnInfo();
+        }
+        
+        // Ban卡组
+        function banDeck(team) {
+            if (gamePhase !== 'ban') {
+                alert('禁用阶段已结束！');
+                return;
+            }
+            
+            if (bannedDecks[team].length >= 1) {
+                alert('该队伍已禁用1套卡组！');
+                return;
+            }
+            
+            const selectedDeck = getSelectedDeck(team);
+            if (!selectedDeck) {
+                alert('请先选择要禁用的卡组！');
+                return;
+            }
+            
+            // 检查是否已禁用该卡组
+            if (bannedDecks[team].includes(selectedDeck)) {
+                alert('该卡组已被禁用！');
+                return;
+            }
+            
+            // 禁用卡组
+            bannedDecks[team].push(selectedDeck);
+            
+            addToHistory(`${team === 'A' ? '队伍A' : '队伍B'} 禁用了: ${selectedDeck}`);
+            
+            // 检查是否双方都已完成禁用
+            if (bannedDecks.A.length === 1 && bannedDecks.B.length === 1) {
+                gamePhase = 'pick';
+                addToHistory('双方禁用完成，进入选择阶段');
+            }
+            
+            updateUI();
+        }
+        
+        // Pick卡组
+        function pickDeck(team) {
+            if (gamePhase !== 'pick') {
+                alert('选择阶段尚未开始！');
+                return;
+            }
+            
+            if (selectedDecks[team].length >= 3) {
+                alert('该队伍已选择3套卡组！');
+                return;
+            }
+            
+            const selectedDeck = getSelectedDeck(team);
+            if (!selectedDeck) {
+                alert('请先选择要使用的卡组！');
+                return;
+            }
+            
+            // 检查是否已被禁用
+            if (bannedDecks[team].includes(selectedDeck)) {
+                alert('该卡组已被禁用！');
+                return;
+            }
+            
+            // 检查是否已被选择
+            if (selectedDecks[team].includes(selectedDeck)) {
+                alert('该卡组已被选择！');
+                return;
+            }
+            
+            // 选择卡组
+            selectedDecks[team].push(selectedDeck);
+            
+            addToHistory(`${team === 'A' ? '队伍A' : '队伍B'} 选择了: ${selectedDeck}`);
+            
+            // 检查是否双方都已完成选择
+            if (selectedDecks.A.length === 3 && selectedDecks.B.length === 3) {
+                addToHistory('游戏结束！双方选择完成');
+            }
+            
+            updateUI();
+        }
+        
+        // 获取选中的卡组
+        function getSelectedDeck(team) {
+            const deckElements = document.querySelectorAll(`#team${team}Decks .deck-card.selected`);
+            return deckElements.length > 0 ? deckElements[0].dataset.deck : null;
+        }
+        
+        // 切换回合
+        function switchTurn() {
+            turnNumber++;
+            currentTurn = currentTurn === 'A' ? 'B' : 'A';
+            updateTurnInfo();
+        }
+        
+        // 更新状态信息
+        function updateTurnInfo() {
+            document.getElementById('currentTurn').textContent = '无回合限制';
+            document.getElementById('remainingDecks').textContent = 12 - (bannedDecks.A.length + bannedDecks.B.length + selectedDecks.A.length + selectedDecks.B.length);
+            document.getElementById('actionCount').textContent = actionHistory.length;
+            document.getElementById('remainingBans').textContent = `${bannedDecks.A.length}/1 - ${bannedDecks.B.length}/1`;
+            document.getElementById('remainingPicks').textContent = `${selectedDecks.A.length}/3 - ${selectedDecks.B.length}/3`;
+            
+            if (gamePhase === 'setup') {
+                document.getElementById('currentAction').textContent = '设置阶段';
+            } else if (gamePhase === 'ban') {
+                document.getElementById('currentAction').textContent = '禁用阶段';
+            } else {
+                document.getElementById('currentAction').textContent = '选择阶段';
+            }
+        }
+        
+        // 添加操作历史
+        function addToHistory(action) {
+            actionHistory.unshift({
+                turn: turnNumber,
+                action: action,
+                time: new Date().toLocaleTimeString()
+            });
+            
+            // 只保留最近20条记录
+            if (actionHistory.length > 20) {
+                actionHistory = actionHistory.slice(0, 20);
+            }
+            
+            updateHistory();
+        }
+        
+        // 更新操作历史显示
+        function updateHistory() {
+            const historyElement = document.getElementById('actionHistory');
+            historyElement.innerHTML = actionHistory
+                .map(item => `<div class="history-item">[${item.time}] ${item.action}</div>`)
+                .join('');
+        }
+        
+        // 运行模拟
+        function runSimulation() {
+            const simulationCount = 10;
+            let results = {
+                totalGames: simulationCount,
+                teamAWins: 0,
+                teamBWins: 0,
+                avgTurns: 0
+            };
+            
+            for (let i = 0; i < simulationCount; i++) {
+                generateDecks();
+                resetBP();
+                
+                // 模拟BP过程
+                while (pickedDecks.length < 12) {
+                    const availableDecks = [...teamADecks, ...teamBDecks]
+                        .filter(deck => !bannedDecks.includes(deck) && !pickedDecks.includes(deck));
+                    
+                    if (availableDecks.length === 0) break;
+                    
+                    const randomDeck = availableDecks[Math.floor(Math.random() * availableDecks.length)];
+                    
+                    if (isBanPhase && banCount.A + banCount.B < 2) {
+                        bannedDecks.push(randomDeck);
+                        banCount[currentTurn]++;
+                    } else {
+                        if (!isBanPhase) {
+                            isBanPhase = false;
+                        }
+                        pickedDecks.push(randomDeck);
+                        pickCount[currentTurn]++;
+                    }
+                    
+                    switchTurn();
+                }
+                
+                // 模拟比赛结果（基于卡组数量）
+                const teamAScore = pickCount.A;
+                const teamBScore = pickCount.B;
+                
+                if (teamAScore > teamBScore) {
+                    results.teamAWins++;
+                } else if (teamBScore > teamAScore) {
+                    results.teamBWins++;
+                }
+                
+                results.avgTurns += turnNumber;
+            }
+            
+            results.avgTurns = (results.avgTurns / simulationCount).toFixed(2);
+            
+            // 显示模拟结果
+            alert(`模拟结果：\n总场次：${results.totalGames}\n队伍A胜利：${results.teamAWins}\n队伍B胜利：${results.teamBWins}\n平均回合数：${results.avgTurns}`);
+        }
+        
+        // 更新UI
+        function updateUI() {
+            updateTeamDecks('A');
+            updateTeamDecks('B');
+            updateTurnInfo();
+            updateCustomDeckGrid();
+            updateCustomDeckGridB();
+            
+            document.getElementById('teamAPicked').textContent = selectedDecks.A.length;
+            document.getElementById('teamBPicked').textContent = selectedDecks.B.length;
+            
+            // 更新按钮状态
+            updateButtonStates();
+        }
+        
+        // 更新按钮状态
+        function updateButtonStates() {
+            const generateOpponentBtn = document.getElementById('generateOpponentBtn');
+            const startBPBtn = document.getElementById('startBPBtn');
+            const applyOpponentBtn = document.querySelector('button[onclick="applyCustomOpponentDecks()"]');
+            
+            // 生成对手卡组按钮状态
+            if (isUserDecksSet && userDecks.length === 6) {
+                generateOpponentBtn.disabled = false;
+                generateOpponentBtn.classList.remove('disabled');
+            } else {
+                generateOpponentBtn.disabled = true;
+                generateOpponentBtn.classList.add('disabled');
+            }
+            
+            // 开始BP按钮状态
+            if (isUserDecksSet && userDecks.length === 6 && opponentDecks.length === 6) {
+                startBPBtn.disabled = false;
+                startBPBtn.classList.remove('disabled');
+            } else {
+                startBPBtn.disabled = true;
+                startBPBtn.classList.add('disabled');
+            }
+            
+            // 自定义对手卡组按钮状态
+             if (isUserDecksSet && userDecks.length === 6) {
+                 applyOpponentBtn.disabled = false;
+                 applyOpponentBtn.classList.remove('disabled');
+             } else {
+                 applyOpponentBtn.disabled = true;
+                 applyOpponentBtn.classList.add('disabled');
+             }
+        }
+        
+        // 更新队伍卡组显示
+        function updateTeamDecks(team) {
+            const container = document.getElementById(`team${team}Decks`);
+            const decks = team === 'A' ? userDecks : opponentDecks;
+            
+            if (decks.length === 0) {
+                container.innerHTML = '<div class="no-decks">暂无卡组</div>';
+                return;
+            }
+            
+            container.innerHTML = decks.map(deck => {
+                let className = 'deck-card';
+                // 检查是否被当前队伍禁用
+                const isBannedByTeam = bannedDecks[team].includes(deck);
+                const isSelectedByTeam = selectedDecks[team].includes(deck);
+                if (isBannedByTeam) className += ' banned';
+                else if (isSelectedByTeam) className += ' picked';
+                
+                return `
+                    <div class="${className}" data-deck="${deck}" onclick="selectDeck('${team}', '${deck}')">
+                        <div class="deck-name">${deck}</div>
+                        <div class="deck-status">
+                            ${isBannedByTeam ? '已禁用' : isSelectedByTeam ? '已选择' : '可用'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // 选择卡组
+        function selectDeck(team, deck) {
+            // 检查是否被当前队伍禁用或已选择
+            if (bannedDecks[team].includes(deck) || selectedDecks[team].includes(deck)) {
+                return;
+            }
+            
+            // 取消所有选中状态
+            document.querySelectorAll('.deck-card.selected').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // 选中当前卡组
+            const deckElement = document.querySelector(`#team${team}Decks .deck-card[data-deck="${deck}"]`);
+            if (deckElement) {
+                deckElement.classList.add('selected');
+            }
+        }
+        
+        // 页面加载时初始化
+        window.addEventListener('load', function() {
+            initialize();
+            updateCustomDeckGrid();
+            updateCustomDeckGridB();
+        });
+    </script>
+</body>
+</html>
